@@ -38,8 +38,8 @@ Activate the conda environment you created above
 - `conda activate opennsfw2`
 
 ```
-smutminer.py -h
-usage: smutminer.py [-h] [-t THRESHOLD] [-l | --list | --no-list] {move,copy,link,score} [directory] [output]
+smutminer.py --help
+usage: smutminer.py [-h] [-t THRESHOLD] [-l | --list | --no-list] [-v] [-a | --all | --no-all] {move,copy,link,score} [directory] [output]
 
 positional arguments:
   {move,copy,link,score}
@@ -53,4 +53,6 @@ options:
                         Default matching threshold for the open_nsfw model (0 - 1). Default: .7
   -l, --list, --no-list
                         Print a list of original file paths
+  -v, --verbose         Output verbosity. Default: Print paths and scores only
+  -a, --all, --no-all   Print scores for every applicable image
 ```
