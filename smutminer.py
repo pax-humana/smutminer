@@ -17,10 +17,13 @@ parser.add_argument('-l', '--list', action=argparse.BooleanOptionalAction,  help
 parser.add_argument('-v', '--verbose', action='count', default=0, help='Output verbosity. Default: Print paths and scores only')
 parser.add_argument('-a', '--all', action=argparse.BooleanOptionalAction,  help='Print scores for every applicable image')
 parser.add_argument('directory', nargs='?', type=str, default='./', help='Input Directory. Default: current working directory.')
-parser.add_argument('output', nargs='?', type=str, default='nsfw', help='Output Subdirectory. Default: nsfw')
+parser.add_argument('output', nargs='?', type=str, default='./nsfw', help='Output Subdirectory. Default: ./nsfw')
 args = parser.parse_args()
 
 VERBOSITY = args.verbose
+if VERBOSITY > 3:
+    VERBOSITY = 3
+
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = str(3-VERBOSITY)
 import opennsfw2
@@ -30,7 +33,8 @@ NSFW_MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
 COMMAND = args.command[0]
 SCORE_THRESHOLD = args.threshold
 INPUT_DIR = os.path.abspath(args.directory)
-OUTPUT_DIR = os.path.abspath(os.path.join(INPUT_DIR, args.output))
+#OUTPUT_DIR = os.path.abspath(os.path.join(INPUT_DIR, args.output))
+OUTPUT_DIR = os.path.abspath(args.output)
 EXCLUDE = set([args.output])
 
 def handler(signum, frame):
@@ -78,8 +82,8 @@ def main():
 
                     image_data = open(os.path.join(fulldir, filename), 'rb').read()
                     scores = preprocess_and_compute(image_data, model)
-                except:
-                    continue
+                except Exception as exc:
+                    print(exc)
 
                 if scores[0][1] >= SCORE_THRESHOLD:
                     if args.list:
