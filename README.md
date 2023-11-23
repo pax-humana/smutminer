@@ -52,7 +52,7 @@ options:
   -t THRESHOLD, --threshold THRESHOLD
                         Default matching threshold for the open_nsfw model (0 - 1). Default: .7
   -l, --list, --no-list
-                        Print a list of original file paths
-  -v, --verbose         Output verbosity. Default: Print paths and scores only
-  -a, --all, --no-all   Print scores for every applicable image
+                        Write a list of original file paths to the output directory
+  -v, --verbose         Output verbosity (1-3). Default: Print paths and scores only
+  -a, --all, --no-all   Print scores for every image found
 ```

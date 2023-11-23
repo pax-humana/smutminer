@@ -13,9 +13,9 @@ from io import BytesIO
 parser = argparse.ArgumentParser()
 parser.add_argument('command', nargs=1, type=str, choices=['move', 'copy', 'link', 'score'], default='score', help='Action to take, default: Print the image path and NSFW Score to stdout')
 parser.add_argument('-t', '--threshold', type=float, default=.7, help='Default matching threshold for the open_nsfw model (0 - 1). Default: .7')
-parser.add_argument('-l', '--list', action=argparse.BooleanOptionalAction,  help='Print a list of original file paths')
-parser.add_argument('-v', '--verbose', action='count', default=0, help='Output verbosity. Default: Print paths and scores only')
-parser.add_argument('-a', '--all', action=argparse.BooleanOptionalAction,  help='Print scores for every applicable image')
+parser.add_argument('-l', '--list', action=argparse.BooleanOptionalAction,  help='Write a list of original file paths to the output directory')
+parser.add_argument('-v', '--verbose', action='count', default=0, help='Output verbosity (1-3). Default: Print paths and scores only')
+parser.add_argument('-a', '--all', action=argparse.BooleanOptionalAction,  help='Print scores for every image found')
 parser.add_argument('directory', nargs='?', type=str, default='./', help='Input Directory. Default: current working directory.')
 parser.add_argument('output', nargs='?', type=str, default='./nsfw', help='Output Subdirectory. Default: ./nsfw')
 args = parser.parse_args()
@@ -89,6 +89,7 @@ def main():
                     orig_filename = filename
                     new_filename = filename
 
+                    # Increment filename suffix if output file exists:
                     while os.path.exists(os.path.join(OUTPUT_DIR, new_filename)):
                         dup += 1
                         fileparts = os.path.splitext(orig_filename)
