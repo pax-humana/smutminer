@@ -33,7 +33,6 @@ NSFW_MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
 COMMAND = args.command[0]
 SCORE_THRESHOLD = args.threshold
 INPUT_DIR = os.path.abspath(args.directory)
-#OUTPUT_DIR = os.path.abspath(os.path.join(INPUT_DIR, args.output))
 OUTPUT_DIR = os.path.abspath(args.output)
 EXCLUDE = set([args.output])
 
@@ -89,23 +88,21 @@ def main():
                     dup = 0
                     orig_filename = filename
                     new_filename = filename
-                    while True:
-                        if os.path.exists(os.path.join(fulldir, new_filename)):
-                            dup += 1
-                            fileparts = os.path.splitext(orig_filename)
-                            new_filename = fileparts[0] + " (" + str(dup).zfill(4) + ")" + fileparts[1]
-                            continue
-                        if args.list:
-                            filelist.write(os.path.join(fulldir, orig_filename) + "\n")
-                            filelist.flush()
-                        if COMMAND == "move":
-                            shutil.move(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
-                        elif COMMAND == "copy":
-                            shutil.copy(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
-                        elif COMMAND == "link":
-                            os.symlink(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
-                        break
-                        
+
+                    while os.path.exists(os.path.join(OUTPUT_DIR, new_filename)):
+                        dup += 1
+                        fileparts = os.path.splitext(orig_filename)
+                        new_filename = fileparts[0] + " (" + str(dup).zfill(4) + ")" + fileparts[1]
+
+                    if args.list:
+                        filelist.write(os.path.join(fulldir, orig_filename) + "\n")
+                        filelist.flush()
+                    if COMMAND == "move":
+                        shutil.move(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
+                    elif COMMAND == "copy":
+                        shutil.copy(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
+                    elif COMMAND == "link":
+                        os.symlink(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
 
                     sys.stdout.write("\033[K")
                     print(os.path.join(fulldir, orig_filename), "NSFW score:" , scores[0][1])
