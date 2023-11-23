@@ -66,7 +66,7 @@ def main():
     model = opennsfw2.make_open_nsfw_model()
 
     if VERBOSITY>0:
-       print("Recursively scanning directory " + INPUT_DIR)
+        print("Recursively scanning directory " + INPUT_DIR)
     for fulldir, subdir, files in os.walk(INPUT_DIR):
         subdir[:] = [d for d in subdir if d not in EXCLUDE] # Exclude the output directory
         for filename in files:
@@ -86,18 +86,29 @@ def main():
                     print(exc)
 
                 if scores[0][1] >= SCORE_THRESHOLD:
-                    if args.list:
-                        filelist.write(os.path.join(fulldir, filename) + "\n")
-                        filelist.flush()
-                    if COMMAND == "move":
-                        shutil.move(os.path.join(fulldir, filename), os.path.join(OUTPUT_DIR, filename))
-                    elif COMMAND == "copy":
-                        shutil.copy(os.path.join(fulldir, filename), os.path.join(OUTPUT_DIR, filename))
-                    elif COMMAND == "link":
-                        os.symlink(os.path.join(fulldir, filename), os.path.join(OUTPUT_DIR, filename))
+                    dup = 0
+                    orig_filename = filename
+                    new_filename = filename
+                    while True:
+                        if os.path.exists(os.path.join(fulldir, new_filename)):
+                            dup += 1
+                            fileparts = os.path.splitext(orig_filename)
+                            new_filename = fileparts[0] + " (" + str(dup).zfill(4) + ")" + fileparts[1]
+                            continue
+                        if args.list:
+                            filelist.write(os.path.join(fulldir, orig_filename) + "\n")
+                            filelist.flush()
+                        if COMMAND == "move":
+                            shutil.move(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
+                        elif COMMAND == "copy":
+                            shutil.copy(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
+                        elif COMMAND == "link":
+                            os.symlink(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
+                        break
+                        
 
                     sys.stdout.write("\033[K")
-                    print(os.path.join(fulldir, filename), "NSFW score:" , scores[0][1])
+                    print(os.path.join(fulldir, orig_filename), "NSFW score:" , scores[0][1])
                 else:
                     if args.all:
                         sys.stdout.write("\033[K")

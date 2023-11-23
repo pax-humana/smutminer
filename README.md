@@ -1,6 +1,6 @@
 # smutminer
 
-Extract/Score images from local directory structures. Updated for Tensorflow2 and OpenNSFW2
+Extract/Score NSFW images from local directory structures. Updated for Tensorflow2 and OpenNSFW2
 
 ### [Install and configure Tensorflow](https://www.tensorflow.org/install/pip#ubuntu_1804_cuda_101)
 
@@ -45,7 +45,7 @@ positional arguments:
   {move,copy,link,score}
                         Action to take, default: Print the image path and NSFW Score to stdout
   directory             Input Directory. Default: current working directory.
-  output                Output Subdirectory. Default: nsfw
+  output                Output Subdirectory. Default: ./nsfw
 
 options:
   -h, --help            show this help message and exit
