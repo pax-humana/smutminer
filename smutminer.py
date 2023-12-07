@@ -16,6 +16,7 @@ parser.add_argument('-t', '--threshold', type=float, default=.8, help='Default m
 parser.add_argument('-l', '--list', action=argparse.BooleanOptionalAction,  help='Write a list of original file paths to the output directory')
 parser.add_argument('-v', '--verbose', action='count', default=0, help='Output verbosity (1-3). Default: Print paths and scores only')
 parser.add_argument('-a', '--all', action=argparse.BooleanOptionalAction,  help='Print scores for every image found')
+parser.add_argument('-m', '--movie', action=argparse.BooleanOptionalAction,  help='Enable scoring for video files')
 parser.add_argument('directory', nargs='?', type=str, default='./', help='Input Directory. Default: current working directory.')
 parser.add_argument('output', nargs='?', type=str, default='./nsfw', help='Output Subdirectory. Default: ./nsfw')
 args = parser.parse_args()
@@ -84,11 +85,58 @@ def main():
                 except Exception as exc:
                     print(exc)
 
-                if scores[0][1] >= SCORE_THRESHOLD:
+                try:
+                    if scores[0][1] >= SCORE_THRESHOLD:
+                        dup = 0
+                        orig_filename = filename
+                        new_filename = filename
+
+                        # Increment filename suffix if output file exists:
+                        while os.path.exists(os.path.join(OUTPUT_DIR, new_filename)):
+                            dup += 1
+                            fileparts = os.path.splitext(orig_filename)
+                            new_filename = fileparts[0] + " (" + str(dup).zfill(4) + ")" + fileparts[1]
+        
+                        if args.list:
+                            filelist.write(os.path.join(fulldir, orig_filename) + "\n")
+                            filelist.flush()
+                        if COMMAND == "move":
+                            shutil.move(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
+                        elif COMMAND == "copy":
+                            shutil.copy(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
+                        elif COMMAND == "link":
+                            os.symlink(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
+        
+                        sys.stdout.write("\033[K")
+                        print(os.path.join(fulldir, orig_filename), "NSFW score:" , scores[0][1])
+                    else:
+                        if args.all:
+                            sys.stdout.write("\033[K")
+                            print(os.path.join(fulldir, filename), "NSFW score:" , scores[0][1])
+                except:
+                    continue
+                        
+            elif(args.movie and filename.lower().endswith(('.avi', '.mov', '.mp4', '.mpeg', '.mkv', '.divx', '.webm'))):
+                try:
+                    if VERBOSITY==1:
+                        sys.stderr.write("\033[K")
+                        print(os.path.join(fulldir, filename), "scoring...", end='\r', file=sys.stderr)
+                        sys.stderr.flush()
+                    elif VERBOSITY>1:
+                        print(os.path.join(fulldir, filename), "scoring...", file=sys.stderr)
+                        sys.stderr.flush()
+
+                    video_path = os.path.join(fulldir, filename)
+                    elapsed_seconds, frame_scores = opennsfw2.predict_video_frames(video_path)
+                    video_score = sum(frame_scores)/len(frame_scores)
+                except Exception as exc:
+                    print(exc)
+
+                if video_score >= SCORE_THRESHOLD:
                     dup = 0
                     orig_filename = filename
                     new_filename = filename
-
+                    
                     # Increment filename suffix if output file exists:
                     while os.path.exists(os.path.join(OUTPUT_DIR, new_filename)):
                         dup += 1
@@ -104,15 +152,14 @@ def main():
                         shutil.copy(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
                     elif COMMAND == "link":
                         os.symlink(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
-
+                
                     sys.stdout.write("\033[K")
-                    print(os.path.join(fulldir, orig_filename), "NSFW score:" , scores[0][1])
+                    print(os.path.join(fulldir, orig_filename), "NSFW score:" , video_score)
                 else:
                     if args.all:
                         sys.stdout.write("\033[K")
-                        print(os.path.join(fulldir, filename), "NSFW score:" , scores[0][1])
-                        
-            
+                        print(os.path.join(fulldir, filename), "NSFW score:" , video_score)
+
             else:
                if VERBOSITY==1:
                    sys.stderr.write("\033[K")
