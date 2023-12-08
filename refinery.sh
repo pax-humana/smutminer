@@ -49,6 +49,6 @@ echo "The following functions require root access."
 #sudo dd if=$DEVICE of=$IMAGE_DIR/$SERIAL.img bs=1M
 sudo ddrescue $DEVICE $IMAGE_DIR/$SERIAL.img $IMAGE_DIR/$SERIAL.map || exit 1
 clear
-photorec /d "$REC_DIR/recovered" /cmd "$IMAGE_DIR/$SERIAL.img" partition_none,wholespace,fileopt,everything,disable,jpg,enable,png,enable,tif,enable,gif,enable,bmp,enable,avi,enable,mov,enable,mp4,enable,mpg,enable,mkv,enable,webm,enable,search || exit 1
+photorec /d "$REC_DIR/recovered" /cmd "$IMAGE_DIR/$SERIAL.img" partition_none,wholespace,fileopt,everything,disable,jpg,enable,png,enable,tif,enable,gif,enable,bmp,enable,mov,enable,mpg,enable,mkv,enable,riff,enable,search || exit 1
 clear
 ./smutminer.py -lm copy "$REC_DIR" "$OUTPUT_DIR" || exit 1
