@@ -12,7 +12,7 @@ from io import BytesIO
 
 parser = argparse.ArgumentParser()
 parser.add_argument('command', nargs=1, type=str, choices=['move', 'copy', 'link', 'score'], default='score', help='Action to take, default: Print the image path and NSFW Score to stdout')
-parser.add_argument('-t', '--threshold', type=float, default=.8, help='Default matching threshold for the open_nsfw model (0 - 1). Default: .8')
+parser.add_argument('-t', '--threshold', type=float, default=.7, help='Default matching threshold for the open_nsfw model (0 - 1). Default: .7')
 parser.add_argument('-l', '--list', action=argparse.BooleanOptionalAction,  help='Write a list of original file paths to the output directory')
 parser.add_argument('-v', '--verbose', action='count', default=0, help='Output verbosity (1-3). Default: Print paths and scores only')
 parser.add_argument('-a', '--all', action=argparse.BooleanOptionalAction,  help='Print scores for every image found')
@@ -132,33 +132,36 @@ def main():
                 except Exception as exc:
                     print(exc)
 
-                if video_score >= SCORE_THRESHOLD:
-                    dup = 0
-                    orig_filename = filename
-                    new_filename = filename
+                try:
+                    if video_score >= SCORE_THRESHOLD or max(frame_scores) >= .95:
+                        dup = 0
+                        orig_filename = filename
+                        new_filename = filename
+                        
+                        # Increment filename suffix if output file exists:
+                        while os.path.exists(os.path.join(OUTPUT_DIR, new_filename)):
+                            dup += 1
+                            fileparts = os.path.splitext(orig_filename)
+                            new_filename = fileparts[0] + " (" + str(dup).zfill(4) + ")" + fileparts[1]
+    
+                        if args.list:
+                            filelist.write(os.path.join(fulldir, orig_filename) + "\n")
+                            filelist.flush()
+                        if COMMAND == "move":
+                            shutil.move(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
+                        elif COMMAND == "copy":
+                            shutil.copy(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
+                        elif COMMAND == "link":
+                            os.symlink(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
                     
-                    # Increment filename suffix if output file exists:
-                    while os.path.exists(os.path.join(OUTPUT_DIR, new_filename)):
-                        dup += 1
-                        fileparts = os.path.splitext(orig_filename)
-                        new_filename = fileparts[0] + " (" + str(dup).zfill(4) + ")" + fileparts[1]
-
-                    if args.list:
-                        filelist.write(os.path.join(fulldir, orig_filename) + "\n")
-                        filelist.flush()
-                    if COMMAND == "move":
-                        shutil.move(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
-                    elif COMMAND == "copy":
-                        shutil.copy(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
-                    elif COMMAND == "link":
-                        os.symlink(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
-                
-                    sys.stdout.write("\033[K")
-                    print(os.path.join(fulldir, orig_filename), "NSFW score:" , video_score)
-                else:
-                    if args.all:
                         sys.stdout.write("\033[K")
-                        print(os.path.join(fulldir, filename), "NSFW score:" , video_score)
+                        print(os.path.join(fulldir, orig_filename), "NSFW score:" , video_score, "(max:", max(frame_scores), ")")
+                    else:
+                        if args.all:
+                            sys.stdout.write("\033[K")
+                            print(os.path.join(fulldir, filename), "NSFW score:" , video_score, "(max:", max(frame_scores), ")")
+                except:
+                    continue
 
             else:
                if VERBOSITY==1:
