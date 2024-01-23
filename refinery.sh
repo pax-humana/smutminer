@@ -4,7 +4,7 @@
 # from raw drives or drive images. Update the shell variables below
 # then run this script with a device name.
 
-IMAGE_DIR="$HOME/storage/images"
+IMAGE_DIR="$HOME/scratch/images"
 REC_DIR="$HOME/scratch/recovery"
 OUTPUT_DIR="$HOME/scratch/nsfw"
 
@@ -51,4 +51,4 @@ sudo ddrescue $DEVICE $IMAGE_DIR/$SERIAL.img $IMAGE_DIR/$SERIAL.map || exit 1
 clear
 photorec /d "$REC_DIR/recovered" /cmd "$IMAGE_DIR/$SERIAL.img" partition_none,wholespace,fileopt,everything,disable,jpg,enable,png,enable,tif,enable,gif,enable,bmp,enable,mov,enable,mpg,enable,mkv,enable,riff,enable,search || exit 1
 clear
-./smutminer.py -lm copy "$REC_DIR" "$OUTPUT_DIR" || exit 1
+time ./smutminer.py -lvm copy "$REC_DIR" "$OUTPUT_DIR" || exit 1

@@ -12,7 +12,7 @@ from io import BytesIO
 
 parser = argparse.ArgumentParser()
 parser.add_argument('command', nargs=1, type=str, choices=['move', 'copy', 'link', 'score'], default='score', help='Action to take, default: Print the image path and NSFW Score to stdout')
-parser.add_argument('-t', '--threshold', type=float, default=.7, help='Default matching threshold for the open_nsfw model (0 - 1). Default: .7')
+parser.add_argument('-t', '--threshold', type=float, default=.8, help='Default matching threshold for the open_nsfw model (0 - 1). Default: .8')
 parser.add_argument('-l', '--list', action=argparse.BooleanOptionalAction,  help='Write a list of original file paths to the output directory')
 parser.add_argument('-v', '--verbose', action='count', default=0, help='Output verbosity (1-3). Default: Print paths and scores only')
 parser.add_argument('-a', '--all', action=argparse.BooleanOptionalAction,  help='Print scores for every image found')
@@ -74,10 +74,11 @@ def main():
                 try:
                     if VERBOSITY==1:
                         sys.stderr.write("\033[K")
-                        print(os.path.join(fulldir, filename), "scoring...", end='\r', file=sys.stderr)
+                        print(filename, "scoring...", end='\r', file=sys.stderr)
                         sys.stderr.flush()
                     elif VERBOSITY>1:
-                        print(os.path.join(fulldir, filename), "scoring...", file=sys.stderr)
+                        sys.stderr.write("\033[K")
+                        print(os.path.join(fulldir, filename), "scoring...", end='\r', file=sys.stderr)
                         sys.stderr.flush()
 
                     image_data = open(os.path.join(fulldir, filename), 'rb').read()
@@ -120,10 +121,11 @@ def main():
                 try:
                     if VERBOSITY==1:
                         sys.stderr.write("\033[K")
-                        print(os.path.join(fulldir, filename), "scoring...", end='\r', file=sys.stderr)
+                        print(filename, "scoring...", end='\r', file=sys.stderr)
                         sys.stderr.flush()
                     elif VERBOSITY>1:
-                        print(os.path.join(fulldir, filename), "scoring...", file=sys.stderr)
+                        sys.stderr.write("\033[K")
+                        print(os.path.join(fulldir, filename), "scoring...", end='\r', file=sys.stderr)
                         sys.stderr.flush()
 
                     video_path = os.path.join(fulldir, filename)
@@ -133,7 +135,7 @@ def main():
                     print(exc)
 
                 try:
-                    if video_score >= SCORE_THRESHOLD or max(frame_scores) >= .95:
+                    if video_score >= SCORE_THRESHOLD:
                         dup = 0
                         orig_filename = filename
                         new_filename = filename
@@ -155,21 +157,18 @@ def main():
                             os.symlink(os.path.join(fulldir, orig_filename), os.path.join(OUTPUT_DIR, new_filename))
                     
                         sys.stdout.write("\033[K")
-                        print(os.path.join(fulldir, orig_filename), "NSFW score:" , video_score, "(max:", max(frame_scores), ")")
+                        print(os.path.join(fulldir, orig_filename), "NSFW score:" , video_score)
                     else:
                         if args.all:
                             sys.stdout.write("\033[K")
-                            print(os.path.join(fulldir, filename), "NSFW score:" , video_score, "(max:", max(frame_scores), ")")
+                            print(os.path.join(fulldir, filename), "NSFW score:" , video_score)
                 except:
                     continue
 
             else:
-               if VERBOSITY==1:
+               if VERBOSITY>1:
                    sys.stderr.write("\033[K")
                    print(os.path.join(fulldir, filename), "is not a supported image.", end='\r', file=sys.stderr)
-                   sys.stderr.flush()
-               elif VERBOSITY>1:
-                   print(os.path.join(fulldir, filename), "is not a supported image.", file=sys.stderr)
                    sys.stderr.flush()
 
     if args.list:
